@@ -1,0 +1,19 @@
+{
+  "name": "part3-fullstackopen",
+  "version": "1.0.0",
+  "description": "part3-fullsrackopen",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MatiTC/part3-fullstakopen.git"
+  },
+  "author": "Matias Tardones C",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MatiTC/part3-fullstakopen/issues"
+  },
+  "homepage": "https://github.com/MatiTC/part3-fullstakopen#readme"
+}
