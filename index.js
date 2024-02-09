@@ -26,6 +26,42 @@ let persons = [
     number: '39-23-6423122',
   },
 ];
+
+// <--- Middleware --->
+var morgan = require('morgan');
+app.use(morgan('tiny'));
+morgan.token('body', (req, res) => {
+  // Verificar si la solicitud es de tipo POST y si tiene un body
+  if (req.method === 'POST' && req.body) {
+    // Si la solicitud es de tipo POST y tiene un cuerpo, retornar el cuerpo como una cadena JSON
+    return JSON.stringify(req.body);
+  } else {
+    // Si la solicitud no es de tipo POST o no tiene un cuerpo, retornar un guión (-)
+    return '-';
+  }
+});
+app.use(morgan(':method :url :status :res[content-length] :req[header] :response-time ms :body'));
+// morgan(format, options)
+// formant ->(tokens, req,res)
+// formant -> predefined cadena string name, cadena de formant , or function
+// formant -> predefined format string name
+
+/*
+// formant -> predefined string of predefine tokens
+morgan(':method :url :status :res[content-length] - :response-time ms')
+//formant -> custom format function
+morgan(function (tokens, req, res) {
+  return [
+    tokens.method(req, res),
+    tokens.url(req, res),
+    tokens.status(req, res),
+    tokens.res(req, res, 'content-length'), '-',
+    tokens['response-time'](req, res), 'ms'
+  ].join(' ')
+})
+//options -> immediate, skip, stream
+ */
+
 // <---Solicitudes--->
 app.get('/api/persons', (request, response) => {
   console.log(persons);
@@ -86,7 +122,7 @@ app.post('/api/persons', (request, response) => {
   console.log(person);
   response.json(person);
 });
-// <--- Middleware --->
+
 // Inicia el servidor
 app.listen(PORT, () => {
   console.log(
