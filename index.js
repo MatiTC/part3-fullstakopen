@@ -131,6 +131,6 @@ app.post('/api/persons', (request, response) => {
 // Inicia el servidor
 app.listen(PORT, () => {
   console.log(
-    `Servidor de agenda telefónica escuchando en http://localhost:${PORT}`
+    `Servidor de agenda telefónica escuchando en el puerto:${PORT}`
   );
 });
