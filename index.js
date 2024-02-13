@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 3001
 // <--- Necesario para una solicitud POST. Analiza el json del body --->
 app.use(express.json());
 // variable de datos
@@ -28,7 +28,7 @@ let persons = [
 ];
 
 // <--- Middleware --->
-var morgan = require('morgan');
+const morgan = require('morgan');
 app.use(morgan('tiny'));
 morgan.token('body', (req, res) => {
   // Verificar si la solicitud es de tipo POST y si tiene un body
@@ -40,7 +40,11 @@ morgan.token('body', (req, res) => {
     return '-';
   }
 });
-app.use(morgan(':method :url :status :res[content-length] :req[header] :response-time ms :body'));
+app.use(
+  morgan(
+    ':method :url :status :res[content-length] :req[header] :response-time ms :body'
+  )
+);
 // morgan(format, options)
 // formant ->(tokens, req,res)
 // formant -> predefined cadena string name, cadena de formant , or function
@@ -61,7 +65,8 @@ morgan(function (tokens, req, res) {
 })
 //options -> immediate, skip, stream
  */
-
+const cors = require('cors');
+app.use(cors());
 // <---Solicitudes--->
 app.get('/api/persons', (request, response) => {
   console.log(persons);
