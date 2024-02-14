@@ -3,6 +3,8 @@ const app = express();
 const PORT = process.env.PORT || 3001
 // <--- Necesario para una solicitud POST. Analiza el json del body --->
 app.use(express.json());
+// <--- Para hacer que express muestre contenido estático, la página index.html y el JavaScript, etc., necesitamos un middleware integrado de express llamado static. --->
+app.use(express.static('dist'))
 // variable de datos
 let persons = [
   {
