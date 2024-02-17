@@ -10,7 +10,7 @@ const password = process.argv[2];
 const name = process.argv[3];
 const number = process.argv[4];
 // agrega la url de la db
-const url = `mongodb+srv://mtckzudev:${password}@cluster1.zpyekxh.mongodb.net/phonebook?retryWrites=true&w=majority`;
+const url = `mongodb+srv://mtckzudev:${password}@cluster1.zpyekxh.mongodb.net/?retryWrites=true&w=majority`;
 mongoose.set('strictQuery', false);
 //hace la conexion
 mongoose.connect(url);

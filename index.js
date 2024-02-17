@@ -1,10 +1,39 @@
 const express = require('express');
 const app = express();
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT || 3001;
 // <--- Necesario para una solicitud POST. Analiza el json del body --->
 app.use(express.json());
 // <--- Para hacer que express muestre contenido estático, la página index.html y el JavaScript, etc., necesitamos un middleware integrado de express llamado static. --->
-app.use(express.static('dist'))
+app.use(express.static('dist'));
+
+//<--- Date Base MondoDB or Mongoose --->
+// ejecuta mongo
+const mongoose = require('mongoose');
+
+const password = process.argv[2];
+console.log(password);
+
+const url = `mongodb+srv://mtckzudev:${password}@cluster1.zpyekxh.mongodb.net/phonebook?retryWrites=true&w=majority`;
+
+mongoose.set('strictQuery', false);
+mongoose.connect(url);
+
+//constructor. Esquema
+const personSchema = new mongoose.Schema({
+  name: String,
+  number: String,
+});
+//
+personSchema.set('toJSON', {
+  transform: (document, returnedObject) =>{
+    returnedObject.id = returnedObject._id.toString()
+    delete returnedObject._id
+    delete returnedObject._v
+  }
+})
+//modelo
+const Person = mongoose.model('Person', personSchema);
+
 // variable de datos
 let persons = [
   {
@@ -30,6 +59,7 @@ let persons = [
 ];
 
 // <--- Middleware --->
+// morgan
 const morgan = require('morgan');
 app.use(morgan('tiny'));
 morgan.token('body', (req, res) => {
@@ -47,32 +77,15 @@ app.use(
     ':method :url :status :res[content-length] :req[header] :response-time ms :body'
   )
 );
-// morgan(format, options)
-// formant ->(tokens, req,res)
-// formant -> predefined cadena string name, cadena de formant , or function
-// formant -> predefined format string name
-
-/*
-// formant -> predefined string of predefine tokens
-morgan(':method :url :status :res[content-length] - :response-time ms')
-//formant -> custom format function
-morgan(function (tokens, req, res) {
-  return [
-    tokens.method(req, res),
-    tokens.url(req, res),
-    tokens.status(req, res),
-    tokens.res(req, res, 'content-length'), '-',
-    tokens['response-time'](req, res), 'ms'
-  ].join(' ')
-})
-//options -> immediate, skip, stream
- */
+// cors intercambio de recursos
 const cors = require('cors');
 app.use(cors());
+
 // <---Solicitudes--->
 app.get('/api/persons', (request, response) => {
-  console.log(persons);
-  response.json(persons);
+  Person.find({}).then((person) => {
+    response.json(person);
+  });
 });
 
 app.get('/info', (request, response) => {
@@ -132,7 +145,5 @@ app.post('/api/persons', (request, response) => {
 
 // Inicia el servidor
 app.listen(PORT, () => {
-  console.log(
-    `Servidor de agenda telefónica escuchando en el puerto:${PORT}`
-  );
+  console.log(`Servidor de agenda telefónica escuchando en el puerto:${PORT}`);
 });
