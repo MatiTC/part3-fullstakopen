@@ -1,32 +1,19 @@
+//<---Para las variables de entorno--->
+require('dotenv').config();
+//<---Express--->
 const express = require('express');
 const app = express();
-const PORT = process.env.PORT || 3001;
+//<---Exportación de módulos mongoose--->
+const Person = require('./models/person');
+//<---Port--->
+const PORT = process.env.PORT;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`)
+})
 // <--- Necesario para una solicitud POST. Analiza el json del body --->
 app.use(express.json());
 // <--- Para hacer que express muestre contenido estático, la página index.html y el JavaScript, etc., necesitamos un middleware integrado de express llamado static. --->
 app.use(express.static('dist'));
-
-//<--- Date Base MondoDB or Mongoose --->
-// ejecuta mongo
-const mongoose = require('mongoose');
-
-const password = process.argv[2];
-console.log(password);
-
-const url = `mongodb+srv://mtckzudev:${password}@cluster1.zpyekxh.mongodb.net/phonebook?retryWrites=true&w=majority`;
-
-mongoose.set('strictQuery', false);
-mongoose.connect(url);
-
-//constructor. Esquema
-const personSchema = new mongoose.Schema({
-  name: String,
-  number: String,
-});
-//
-
-//modelo
-const Person = mongoose.model('Person', personSchema);
 
 // variable de datos
 let persons = [
@@ -71,6 +58,7 @@ app.use(
     ':method :url :status :res[content-length] :req[header] :response-time ms :body'
   )
 );
+
 // cors intercambio de recursos
 const cors = require('cors');
 app.use(cors());
@@ -137,7 +125,3 @@ app.post('/api/persons', (request, response) => {
   response.json(person);
 });
 
-// Inicia el servidor
-app.listen(PORT, () => {
-  console.log(`Servidor de agenda telefónica escuchando en el puerto:${PORT}`);
-});
