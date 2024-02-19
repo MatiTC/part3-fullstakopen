@@ -8,8 +8,8 @@ const Person = require('./models/person');
 //<---Port--->
 const PORT = process.env.PORT;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
-})
+  console.log(`Server running on port ${PORT}`);
+});
 // <--- Necesario para una solicitud POST. Analiza el json del body --->
 app.use(express.json());
 // <--- Para hacer que express muestre contenido estático, la página index.html y el JavaScript, etc., necesitamos un middleware integrado de express llamado static. --->
@@ -64,64 +64,71 @@ const cors = require('cors');
 app.use(cors());
 
 // <---Solicitudes--->
+// GET
 app.get('/api/persons', (request, response) => {
-  Person.find({}).then((person) => {
-    response.json(person);
-  });
+  Person.find({})
+    .then((person) => {
+      response.json(person);
+    })
+    .catch((error) => {
+      console.log(error);
+      response.status(500).send('Error al obtener los datos');
+    });
 });
 
 app.get('/info', (request, response) => {
-  const numEntries = persons.length;
-  const time = new Date().toUTCString();
-  console.log(time);
-  console.log(numEntries);
-  const infoHTML = `
-      <p>Agenda Telefónica tiene información de ${numEntries} personas</p>
-      <p>${time}</p>
-    `;
-  response.send(infoHTML);
+  Person.countDocuments()
+    .then((numEntries) => {
+      const time = new Date().toUTCString();
+      console.log(Person);
+      console.log(time);
+      console.log(numEntries);
+      const infoHTML = `
+        <p>Agenda Telefónica tiene información de ${numEntries} personas</p>
+        <p>${time}</p>
+      `;
+      response.send(infoHTML);
+    })
+    .catch((error) => {
+      console.log(error);
+      response.status(500).send('Error al obtener la información');
+    });
 });
 
 app.get('/api/persons/:id', (request, response) => {
-  const id = Number(request.params.id);
-  console.log(id);
-  const person = persons.find((person) => person.id === id);
-  if (person) {
+  Person.findById(request.params.id).then((person) => {
     response.json(person);
-  } else {
+  })
+  .catch(error => {
+    console.log(error)
     response.status(404).end();
-  }
+  });
 });
-
+// DELETE
 app.delete('/api/persons/:id', (request, response) => {
   const id = Number(request.params.id);
   persons = persons.filter((person) => person.id !== id);
   response.status(204).end();
 });
-
+// POST
 app.post('/api/persons', (request, response) => {
   const body = request.body;
-
+  console.log(body)
   if (!body.number || !body.number) {
     return response.status(400).json({ error: 'Falta el nombre o el número' });
   }
 
   // Verificar si el nombre ya está presente en la lista de personas
-  const duplicatePerson = persons.find((person) => person.name === body.name);
-  if (duplicatePerson) {
-    return response
-      .status(400)
-      .json({ error: 'El nombre ya se encuentra en la lista de personas' });
-  }
-  const idAleatorio = Math.floor(Math.random() * 100) + 1;
-  console.log(body);
-  const person = {
+  const person = new Person({
     name: body.name,
-    number: body.number,
-    id: idAleatorio,
-  };
-  persons = persons.concat(person);
-  console.log(person);
-  response.json(person);
-});
+    number: body.number
+  });
 
+  person.save().then(savedPerson => {
+    response.json(savedPerson);
+  })
+  .catch(error => {
+    console.log(error);
+    response.status(500).json({ error: 'Error al guardar la persona en la base de datos' });
+  });
+});
