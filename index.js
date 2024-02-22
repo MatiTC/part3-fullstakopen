@@ -10,34 +10,10 @@ const PORT = process.env.PORT;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-// <--- Necesario para una solicitud POST. Analiza el json del body --->
-app.use(express.json());
 // <--- Para hacer que express muestre contenido estático, la página index.html y el JavaScript, etc., necesitamos un middleware integrado de express llamado static. --->
 app.use(express.static('dist'));
-
-// variable de datos
-let persons = [
-  {
-    id: 1,
-    name: 'Arto Hellas',
-    number: '040-123456',
-  },
-  {
-    id: 2,
-    name: 'Ada Lovelace',
-    number: '39-44-5323523',
-  },
-  {
-    id: 3,
-    name: 'Dan Abramov',
-    number: '12-43-234345',
-  },
-  {
-    id: 4,
-    name: 'Mary Poppendieck',
-    number: '39-23-6423122',
-  },
-];
+// <--- Necesario para una solicitud POST. Analiza el json del body --->
+app.use(express.json());
 
 // <--- Middleware --->
 // morgan
@@ -58,7 +34,6 @@ app.use(
     ':method :url :status :res[content-length] :req[header] :response-time ms :body'
   )
 );
-
 // cors intercambio de recursos
 const cors = require('cors');
 app.use(cors());
@@ -95,25 +70,64 @@ app.get('/info', (request, response) => {
     });
 });
 
-app.get('/api/persons/:id', (request, response) => {
-  Person.findById(request.params.id).then((person) => {
-    response.json(person);
-  })
-  .catch(error => {
-    console.log(error)
-    response.status(404).end();
-  });
+app.get('/api/persons/:id', (request, response, next) => {
+  Person.findById(request.params.id)
+    .then((person) => {
+      if (person) {
+        response.json(person);
+      } else {
+        response.status(404).end();
+      }
+    })
+    .catch((error) => next(error));
 });
+
 // DELETE
-app.delete('/api/persons/:id', (request, response) => {
-  const id = Number(request.params.id);
-  persons = persons.filter((person) => person.id !== id);
-  response.status(204).end();
+app.delete('/api/persons/:id', (request, response, next) => {
+  const id = request.params.id;
+  console.log('id de Delete:', id);
+  Person.findByIdAndDelete(id)
+    .then((result) => {
+      response.status(204).end();
+    })
+    .catch((error) => next(error));
 });
+// UPDATE
+app.put('/api/persons/:id', (request, response) => {
+  const body = request.body;
+  const id = request.params.id;
+  console.log(id);
+  console.log(body);
+
+  const person = {
+    name: body.name,
+    number: body.number
+  }
+
+  Person.findByIdAndUpdate(id, person, { new: true, runValidators: true })
+    .then((updatedPerson) => {
+      if (!updatedPerson) {
+        return response
+          .status(404)
+          .json({ error: 'No se encontró a la persona' });
+      }
+      response.json(updatedPerson);
+    })
+    .catch((error) => {
+      console.log(error);
+      if (error.name === 'ValidationError') {
+        return response.status(400).json({ error: error.message });
+      }
+      response
+        .status(500)
+        .json({ error: 'Error al actualizar la persona en la base de datos' });
+    });
+});
+
 // POST
 app.post('/api/persons', (request, response) => {
   const body = request.body;
-  console.log(body)
+  console.log(body);
   if (!body.number || !body.number) {
     return response.status(400).json({ error: 'Falta el nombre o el número' });
   }
@@ -121,14 +135,38 @@ app.post('/api/persons', (request, response) => {
   // Verificar si el nombre ya está presente en la lista de personas
   const person = new Person({
     name: body.name,
-    number: body.number
+    number: body.number,
   });
 
-  person.save().then(savedPerson => {
-    response.json(savedPerson);
-  })
-  .catch(error => {
-    console.log(error);
-    response.status(500).json({ error: 'Error al guardar la persona en la base de datos' });
-  });
+  person
+    .save()
+    .then((savedPerson) => {
+      response.json(savedPerson);
+    })
+    .catch((error) => {
+      console.log(error);
+      response
+        .status(500)
+        .json({ error: 'Error al guardar la persona en la base de datos' });
+    });
 });
+
+//<---Middleware--->
+
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: 'unknown endpoint' });
+};
+
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message);
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' });
+  }
+
+  next(error);
+};
+// controlador de solicitudes con endpoint desconocido
+app.use(unknownEndpoint);
+// este debe ser el último middleware cargado
+app.use(errorHandler);
