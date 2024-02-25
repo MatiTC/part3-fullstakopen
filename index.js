@@ -19,7 +19,7 @@ app.use(express.json());
 // morgan
 const morgan = require('morgan');
 app.use(morgan('tiny'));
-morgan.token('body', (req, res) => {
+morgan.token('body', (req) => {
   // Verificar si la solicitud es de tipo POST y si tiene un body
   if (req.method === 'POST' && req.body) {
     // Si la solicitud es de tipo POST y tiene un cuerpo, retornar el cuerpo como una cadena JSON
@@ -87,7 +87,7 @@ app.delete('/api/persons/:id', (request, response, next) => {
   const id = request.params.id;
   console.log('id de Delete:', id);
   Person.findByIdAndDelete(id)
-    .then((result) => {
+    .then(() => {
       response.status(204).end();
     })
     .catch((error) => next(error));

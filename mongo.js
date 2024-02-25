@@ -35,8 +35,8 @@ if (process.argv.length === 3) {
     mongoose.connection.close();
   });
 } else {
-    // Guardado del modelo
-  person.save().then((result) => {
+  // Guardado del modelo
+  person.save().then(() => {
     console.log(`Se agregó a ${name} con el número: ${number} a la Phonebook`);
     mongoose.connection.close();
   });
